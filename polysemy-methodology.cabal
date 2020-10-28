@@ -18,6 +18,10 @@ extra-source-files:
     README.md
     ChangeLog.md
 
+source-repository head
+  type: git
+  location: https://gitlab.com/homotopic-tech/polysemy-methodology
+
 library
   exposed-modules:
       Polysemy.Methodology
@@ -25,6 +29,7 @@ library
       Paths_polysemy_methodology
   hs-source-dirs:
       src
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
     , polysemy
