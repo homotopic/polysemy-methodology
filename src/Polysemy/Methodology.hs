@@ -176,4 +176,4 @@ endMethodologyTerminal :: Monoid c
                        => Sem (Methodology (HList (x ': xs)) c ': r) a
                        -> Sem r a
 endMethodologyTerminal = interpret \case
-  Process _ -> return $ mempty
+  Process _ -> return mempty
