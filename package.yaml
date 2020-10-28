@@ -1,0 +1,23 @@
+name:                polysemy-methodology
+version:             0.1.0.0
+license:             MIT
+git:                 https://gitlab.com/homotopic-tech/polysemy-methodology
+author:              "Daniel Firth"
+maintainer:          "dan.firth@homotopic.tech"
+copyright:           "2020 Daniel Firth"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+synopsis:            Domain modelling algebra for polysemy
+category:            Polysemy
+
+dependencies:
+- base >= 4.7 && < 5
+- polysemy
+- polysemy-plugin
+- polysemy-zoo
+
+library:
+  source-dirs: src

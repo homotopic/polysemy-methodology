@@ -1,0 +1,8 @@
+resolver: nightly-2020-10-28
+packages:
+- .
+extra-deps:
+- compact-0.2.0.0
+- polysemy-plugin-0.2.5.1
+- polysemy-zoo-0.7.0.1
+- ghc-tcplugins-extra-0.3.2
