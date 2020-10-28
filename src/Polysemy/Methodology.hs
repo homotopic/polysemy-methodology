@@ -159,7 +159,7 @@ endMethodologyInitial = interpret \case
   Process _ -> return HNil
 
 -- | Factor a `Methodology` decomposed over an `HList` in the source by a `Methodology` from the first variable. Assumes the result is a `Monoid`.
-separateMethodologyTerminal :: forall x xs c r a.
+separateMethodologyTerminal :: forall x c xs r a.
                                (Monoid c,
                                Members '[ Methodology (HList xs) c
                                         , Methodology x c] r)
