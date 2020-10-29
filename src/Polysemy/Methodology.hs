@@ -12,6 +12,7 @@
 {-# OPTIONS_GHC -fplugin=Polysemy.Plugin #-}
 module Polysemy.Methodology where
 
+import Control.Monad
 import Polysemy
 import Polysemy.KVStore
 import Polysemy.Input
@@ -177,3 +178,43 @@ endMethodologyTerminal :: Monoid c
                        -> Sem r a
 endMethodologyTerminal = interpret \case
   Process _ -> return mempty
+
+-- | Run a `Methodology (f b) (f c)` by way of a `Methodology b c`. Note that
+-- `f` must be `Traversable`.
+fmapMethodology :: forall f b c r a.
+                 ( Members '[Methodology b c] r
+                 , Traversable f)
+                => Sem (Methodology (f b) (f c) ': r) a
+                -> Sem r a
+fmapMethodology = interpret \case
+  Process b -> traverse (process @b @c) b
+
+-- | Run a `Methodology (f (g b)) (f (g c))` by way of a `Methodology b c`. Note that
+-- `f` and `g` must be `Traversable`.
+fmap2Methodology :: forall f g b c r a.
+                  ( Members '[Methodology b c] r
+                  , Traversable f, Traversable g)
+                 => Sem (Methodology (f (g b)) (f (g c)) ': Methodology (g b) (g c) ': r) a
+                 -> Sem r a
+fmap2Methodology = fmapMethodology @g @b @c . fmapMethodology @f @(g b) @(g c)
+
+-- | Run a `Methodology (f b) (f c)` by way of a `Methodology b (f c)`. Note that
+-- `f` must be both `Traversable` and `Monad`.
+bindMethodology :: forall f b c r a.
+                 ( Members '[Methodology b (f c)] r
+                 , Traversable f, Monad f)
+                => Sem (Methodology (f b) (f c) ': r) a
+                -> Sem r a
+bindMethodology = interpret \case
+  Process b -> join <$> traverse (process @b @(f c)) b
+
+-- | Run a `Methodology (t b) (f (t b))` by way of a `Methodology b (f c)`. Note that
+-- `t` must be `Traversable` and `f` must be `Applicative`.
+traverseMethodology :: forall t f b c r a.
+                     ( Members '[Methodology b (f c)] r
+                     , Traversable t, Applicative f)
+                    => Sem (Methodology (t b) (f (t c)) ': r) a
+                    -> Sem r a
+traverseMethodology = interpret \case
+  Process b -> sequenceA <$> traverse (process @b @(f c)) b
+
