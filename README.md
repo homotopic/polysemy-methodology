@@ -127,7 +127,7 @@ write one giant function to solve the methodology.
 soln :: Members '[...] r => Config.Deck -> Sem r Deck
 soln = ...
 
--- runMethodologySem @Config.Deck @Deck
+-- runMethodologySem @Config.Deck @Deck soln
 ```
 
 But this would conflate our concerns - the different specs require different
@@ -159,24 +159,34 @@ require interpreters for each. So if we start with a `Methodology b d`, we
 can break it into `Methodology b c` and `Methodology c d`, each of which
 will require some solution. This is essentially reverse arrow composition.
 
+```
 b -----> d   ===>  (b ---> c), (c ---> d)
+```
 
 `divideMethodology` breaks the target into a pair, and connects
 the source to both of them, producing three `Methodology`s we need to solve. This is reverse fanout.
 
+```
 b ----> d ==> (b ---> c), (b ---> c'), ((c,c') ----> d)
+```
 
-`decideMethodology` breaks the source into an `Either`, producing three arrows we need to solve. This is reverse fanin.
+`decideMethodology` breaks the source into an `Either`, allowing us to
+choose a `Methodology` to run as the result of another `Methodology`
+based on the source. This is reverse fanin.
 
+```
 b ----> d ===> (b---> Either c c'), (c ---> d), (c ---> d)
+```
 
 `decomposeMethodology` is `cutMethodology` specialised to
 `HList` as the center argument. This allows us to cut the
 `Methodology` into multiple parallel tracks.
 
+```
                 /-----c-----\
 b ----> d ===> b------d------f
                 \-----e-----/
+```
 
 Back to our example, we need to decompose our `Config` into
 the problems concerning each type of spec, then turn
