@@ -47,7 +47,7 @@ import Polysemy.Output
 -- | A `DeckConfiguration` indicates how we create cards.
 data DeckConfiguration
 
--- | A `CollectionsPackage` indicates.
+-- | A `CollectionsPackage` indicates the desired output format.
 data CollectionsPackage
 
 -- | The Construction Methodology for flashblast.
