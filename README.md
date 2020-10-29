@@ -146,8 +146,8 @@ would also increase our testing surface.
 purely transformed.
 * `ExcerptSpec`s need to be transformed into cards by way of processing
   the specified video and subtitle track via ffmpeg.
-* `PronunciationSpec`s need to be transformed via megaparsec and the
-  audio for the extracted words retrieved from a remote API.
+* `PronunciationSpec` need to fetch the pronunciation data for the target
+  words from a remote API.
 
 What would be nice is if we could reach a point where we can make functions
 for each of with their respective effects isolated but without having to
