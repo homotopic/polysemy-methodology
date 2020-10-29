@@ -173,7 +173,7 @@ separateMethodologyTerminal = interpret \case
 
 -- | Finalise an `HList` separated `Methodology` in the source by returning the `Monoid` unit.
 endMethodologyTerminal :: Monoid c
-                       => Sem (Methodology (HList (x ': xs)) c ': r) a
+                       => Sem (Methodology (HList '[]) c ': r) a
                        -> Sem r a
 endMethodologyTerminal = interpret \case
   Process _ -> return mempty
