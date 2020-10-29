@@ -30,7 +30,7 @@ requirements.
 ## Worked example
 
 A worked example of this approach can be found in the
-`[flashblast](https://gitlab.com/homotopic-tech/flashblast)`
+[flashblast](https://gitlab.com/homotopic-tech/flashblast)
 repository. In this we want to take a configuration in dhall,
 and process it in some way an output of flashcards.
 
