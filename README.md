@@ -8,6 +8,7 @@ A simple program might look something like this:
 prog :: Members '[ Input a
                  , Methodology a b
                  , Output b]
+     => Sem r ()
 prog = input @a >>= process @a @b >>= output @b
 ```
 
