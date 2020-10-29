@@ -37,6 +37,7 @@ and process it in some way an output of flashcards.
 We might model this as such:
 
 ```
+-- Domain.hs
 import Polysemy
 import Polysemy.Input
 import Polysemy.Tagged
@@ -65,8 +66,12 @@ flashblast = do
 
 Notice that this is an abstract domain model. We have not committed to
 a particular representation of any of the three elements of this program.
-In fact, the domain model depends only on polysemy libraries, which allows
+In fact, this file depends only on polysemy modules, which allows
 us to isolate the domain model from anything resembling real code.
+
+However, we would also like to claim that what we say the program *should*
+do in abstraction is *actually* what we run for real. So it would be
+reassuring to be able to simply interpret this into real functions.
 
 We commit to a concrete representation for the config and for
 the output only in the main application file, where we iterate over
@@ -120,8 +125,9 @@ main = do
 Here we will be told that we need to satisfy the `Input`, `Output` and
 `Methodology` effects.
 
-The Config.Deck is divided into several different specs. We could simply
-write one giant function to solve the methodology.
+The `Config.Deck` is divided into several different specs. We could simply
+write one giant function to solve the `Methodology` and annihilate the 
+`Methodology` effect using `runMethodologySem`.
 
 ```
 soln :: Members '[...] r => Config.Deck -> Sem r Deck
@@ -132,9 +138,10 @@ soln = ...
 
 But this would conflate our concerns - the different specs require different
 effects to execute, and having this single function require all effects
-wouuld be maintenance should we choose to remove any functionality:
+wouuld be maintenance should we choose to remove any functionality. It
+would also increase our testing surface.
 
-* The `MinimalReversedCard`s and `BasicReversedCard`s are simple
+* The `MinimalReversedCard`s and `BasicReversedCard`s are direct
   representations of what the output cards should look like, and so can be
 purely transformed.
 * `ExcerptSpec`s need to be transformed into cards by way of processing
@@ -149,7 +156,9 @@ agglomerate all the effects into a single solution function.
 It makes sense then to take our `Methodology` and break it down into sub
 `Methodology`s that can be reasoned about independently, rather than trying
 to satisfy the program with one function built up from parts. This way
-we can break the program down using only type applications and interpreters.
+we can break the program down using only type applications and interpreters,
+and we only need to write any code once we are happy that the problem is
+sufficiently decomposed.
 
 The interpreters in this library aree operations that consume a `Methodology`
 and turn it into parts.
