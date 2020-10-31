@@ -240,8 +240,8 @@ functions.
 ```
     & decomposeMethodology @Config.Deck @DeckSplit @Deck
     & traceMethodologyAround @Config.Deck @(HList DeckSplit)
-            (const $ T.unpack $ "Analysing Deck")
-            (const $ T.unpack $ "Finished Analysing Deck")
+            (const $ "Analysing Deck")
+            (const $ "Finished Analysing Deck")
       & separateMethodologyInitial @Config.Deck @[Config.MinimalReversedCard]
       & traceMethodologyAround @Config.Deck @[Config.MinimalReversedCard]
              (const "Extracting Minimal Reversed Card Specs")
