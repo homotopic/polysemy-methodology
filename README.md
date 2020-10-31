@@ -207,6 +207,7 @@ main = do
       & decomposeMethodology @Config.Deck @DeckSplit @Deck
         -- We pull out `Config.Deck -> [Config.MinimalReversedCard]` as its own `Methodology`.
         & separateMethodologyInitial @Config.Deck @[Config.MinimalReversedCard])
+          -- And then immediately solve it purely.
           & runMethodologyPure _
         & separateMethodologyInitial @Config.Deck @[Config.BasicReversedCard]
           & runMethodologyPure _
