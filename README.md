@@ -200,6 +200,12 @@ its own `Methodology`. Then, decompose this further or solve
 it.
 
 ```
+type DeckSplit = '[[Config.MinimalReversedCard]
+                 , [Config.BasicReversedCard]
+                 , [Config.ExcerptSpec]
+                 , [Config.PronunciationSpec]
+                 ]
+
 main = do
   forM_ decks $ \x -> do
     flashblast @Config.Deck @Deck
