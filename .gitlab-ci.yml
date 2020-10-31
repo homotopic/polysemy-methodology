@@ -6,13 +6,7 @@ before_script:
 - nix-env -iA nixpkgs.hlint
 
 stages:
-- lint 
 - build
-
-lint:
-  stage: lint
-  script:
-  - hlint .
 
 build:
   stage: build
