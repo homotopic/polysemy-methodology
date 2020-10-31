@@ -1,5 +1,9 @@
 # Changelog for polysemy-methodology
 
+## v0.1.5.0
+
+* Add `mconcatMethodology`.
+
 ## v0.1.4.0
 
 * Add `logMethodologyStart`, `logMethodologyEnd` and `logMethodologyAround`

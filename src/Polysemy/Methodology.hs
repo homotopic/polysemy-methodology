@@ -28,7 +28,7 @@ data Methodology b c m a where
 makeSem ''Methodology
 
 -- | Run a `Methodology` using a pure function.
-runMethodologyPure :: forall b c r a. (b -> c) -> Sem (Methodology b c ': r) a -> Sem r a 
+runMethodologyPure :: forall b c r a. (b -> c) -> Sem (Methodology b c ': r) a -> Sem r a
 runMethodologyPure f = interpret \case
   Process b -> return $ f b
 
@@ -122,7 +122,7 @@ runMethodologyAsKVStoreWithDefault :: forall k v r a.
 runMethodologyAsKVStoreWithDefault d = interpret \case
   Process k -> do
     z <- lookupKV k
-    case z of 
+    case z of
       Just a -> return a
       Nothing -> return d
 
@@ -229,6 +229,15 @@ traceMethodologyStart :: forall b c r a.
                        -> Sem r a
 traceMethodologyStart f = intercept \case
   Process b -> trace (f b) >> process @b @c b
+
+-- | Run a `Methodology` concatenating the results as a monoid.
+mconcatMethodology :: forall f b c r a.
+                      ( Members '[Methodology b c] r
+                      , Monoid c, Traversable f)
+                   => Sem (Methodology (f b) c ': r) a
+                   -> Sem r a
+mconcatMethodology = interpret \case
+  Process b -> traverse (process @b @c) b >>= return . foldr (<>) mempty
 
 -- | `Trace` a `String` based on the output to a `Methodology`.
 traceMethodologyEnd :: forall b c r a.
