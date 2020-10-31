@@ -231,17 +231,19 @@ filled by nice clean `a -> b` or `a -> Sem r b` functions.
 Any effects we add here we can deal with after this block, or
 we can decompose this even further (see flashblast for more details).
 
+## Logging
+
 You can also surround `Methodology`s with logging using the
 `traceMethodologyStart`, `traceMethodologyEnd` and `traceMethodologyAround`
 functions.
 
 ```
     & decomposeMethodology @Config.Deck @DeckSplit @Deck
-        & traceMethodologyAround @Config.Deck @(HList DeckSplit)
+    & traceMethodologyAround @Config.Deck @(HList DeckSplit)
             (const $ T.unpack $ "Analysing Deck: " <> n)
             (const $ T.unpack $ "Finished Analysing Deck: " <> n)
-          & separateMethodologyInitial @Config.Deck @[Config.MinimalReversedCard]
-            & traceMethodologyAround @Config.Deck @[Config.MinimalReversedCard]
+      & separateMethodologyInitial @Config.Deck @[Config.MinimalReversedCard]
+      & traceMethodologyAround @Config.Deck @[Config.MinimalReversedCard]
              (const "Extracting Minimal Reversed Card Specs")
              (\c -> "Found " <> show (length c) <> " Minimal Card specs.")
 ```
