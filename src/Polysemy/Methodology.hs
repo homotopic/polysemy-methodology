@@ -18,6 +18,7 @@ import Polysemy.KVStore
 import Polysemy.Input
 import Polysemy.Output
 import Polysemy.Several
+import Polysemy.Trace
 
 -- | A `Methodology` generalises a semantic process from `b` to `c`.
 data Methodology b c m a where
@@ -218,3 +219,40 @@ traverseMethodology :: forall t f b c r a.
 traverseMethodology = interpret \case
   Process b -> sequenceA <$> traverse (process @b @(f c)) b
 
+-- | `Trace` a `String` based on the input to a `Methodology`.
+traceMethodologyStart :: forall b c r a.
+                         Members '[Methodology b c,
+                                   Trace] r
+                       => (b -> String)
+                       -> Sem r a
+                       -> Sem r a
+traceMethodologyStart f = intercept \case
+  Process b -> trace (f b) >> process @b @c b
+
+-- | `Trace` a `String` based on the output to a `Methodology`.
+traceMethodologyEnd :: forall b c r a.
+                       Members '[Methodology b c,
+                                Trace] r
+                       => (c -> String)
+                       -> Sem r a
+                       -> Sem r a
+traceMethodologyEnd f = intercept \case
+  Process b -> do
+    c <- process @b @c b
+    trace $ f c
+    return c
+
+-- | `Trace` both the start and the end of a `Methodology`.
+traceMethodologyAround :: forall b c r a.
+                           Members '[Methodology b c,
+                                     Trace] r
+                       => (b -> String)
+                       -> (c -> String)
+                       -> Sem r a
+                       -> Sem r a
+traceMethodologyAround f g = intercept \case
+  Process b -> do
+    trace $ f b
+    c <- process @b @c b
+    trace $ g c
+    return c
