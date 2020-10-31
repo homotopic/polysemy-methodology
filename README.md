@@ -31,7 +31,7 @@ requirements.
 
 A worked example of this approach can be found in the
 [flashblast](https://gitlab.com/homotopic-tech/flashblast)
-repository. In this we want to take a configuration in dhall,
+repository. In this we want to take a configuration,
 and process it in some way an output of flashcards.
 
 We might model this as such:
@@ -85,25 +85,14 @@ data Spec =
   | BasicReversed   [BasicReversedCard]
   | MinimalReversed [MinimalReversedCard]
     deriving stock Generic
-    deriving D.FromDhall
-      via D.Codec (D.Field (D.DropPrefix "_")) Spec
 
 makePrisms ''Spec
-
-data Part = Part {
-  _outfile :: Path Rel File
-, _spec    :: Spec
-} deriving Generic
-  deriving D.FromDhall
-    via D.Codec (D.Field (D.DropPrefix "_")) Part
 
 data Deck = Deck {
   _resourceDirs :: ResourceDirs
 , _exportDirs   :: ExportDirs
-, _parts        :: [Part]
+, _parts        :: [Spec]
 } deriving stock Generic
-  deriving D.FromDhall
-    via D.Codec (D.Field (D.DropPrefix "_")) Deck
 ```
 
 ```
@@ -116,8 +105,8 @@ data Deck = Deck {
   deriving Monoid via GenericMonoid Deck
 
 main = do
-  Config.FlashBlast{..} <- D.input D.auto "./index.dhall"
-  forM_ _decks $ \x -> do
+  decks <- ...
+  forM_ decks $ \x -> do
     flashblast @Config.Deck @Deck
       & runM
 ```
@@ -211,57 +200,50 @@ its own `Methodology`. Then, decompose this further or solve
 it.
 
 ```
-type DeckSplit = '[Map (Path Rel File) [Config.MinimalReversedCard]
-                 , Map (Path Rel File) [Config.BasicReversedCard]
-                 , Map (Path Rel File) [Config.ExcerptSpec]
-                 , Map (Path Rel File) [Config.PronunciationSpec]
-                 ]
-
-type FileMap b = Map (Path b File)
-
-extractParts :: Prism' Config.Spec x -> Config.Deck -> Map (Path Rel File) x
-extractParts x = Map.fromList . itoListOf
-                  ( Config.parts
-                  % itraversed
-                  %> reindexed (view Config.outfile) selfIndex
-                  % Config.spec
-                  % x
-                  )
-
-
-
 main = do
-  Config.FlashBlast{..} <- D.input D.auto "./index.dhall"
-  forM_ _decks $ \x -> do
+  forM_ decks $ \x -> do
     flashblast @Config.Deck @Deck
       & untag @ConstructionMethodology
       & decomposeMethodology @Config.Deck @DeckSplit @Deck
-        -- We pull out `Config.Deck -> (FileMap Rel [Config.MinimalReversedCard]` as its own `Methodology`.
-        & separateMethodologyInitial @Config.Deck @(FileMap Rel [Config.MinimalReversedCard])
-          -- And then immediately solve it purely.
-          & runMethodologyPure (extractParts Config._MinimalReversed)
-        -- and do the same for each one in the list.
-        & separateMethodologyInitial @Config.Deck @(FileMap Rel [Config.BasicReversedCard])
-          & runMethodologyPure (extractParts Config._BasicReversed)
-        & separateMethodologyInitial @Config.Deck @(FileMap Rel [Config.ExcerptSpec])
-          & runMethodologyPure (extractParts Config._Excerpt)
-        & separateMethodologyInitial @Config.Deck @(FileMap Rel [Config.PronunciationSpec])
-          & runMethodologyPure (extractParts Config._Pronunciation)
+        -- We pull out `Config.Deck -> [Config.MinimalReversedCard]` as its own `Methodology`.
+        & separateMethodologyInitial @Config.Deck @[Config.MinimalReversedCard])
+          & runMethodologyPure _
+        & separateMethodologyInitial @Config.Deck @[Config.BasicReversedCard]
+          & runMethodologyPure _
+        & separateMethodologyInitial @Config.Deck @[Config.ExcerptSpec]
+          & runMethodologyPure _
+        & separateMethodologyInitial @Config.Deck @[Config.PronunciationSpec]
+          & runMethodologyPure _
         & endMethodologyInitial
-          & separateMethodologyTerminal @(FileMap Rel [Config.MinimalReversedCard]) @Deck
+          & separateMethodologyTerminal @[Config.MinimalReversedCard] @Deck
             & runMethodologyPure _
-          & separateMethodologyTerminal @(FileMap Rel [Config.BasicReversedCard]) @Deck
+          & separateMethodologyTerminal @[Config.BasicReversedCard] @Deck
             & runMethodologyPure _
-          & separateMethodologyTerminal @(FileMap Rel [Config.ExcerptSpec]) @Deck
+          & separateMethodologyTerminal @[Config.ExcerptSpec] @Deck
             & runMethodologySem _
-          & separateMethodologyTerminal @(FileMap Rel [Config.PronunciationSpec]) @Deck
+          & separateMethodologyTerminal @[Config.PronunciationSpec] @Deck
             & runMethodologySem _
 ```
 
 We have left holes that polysemy will now tell us need to be
 filled by nice clean `a -> b` or `a -> Sem r b` functions.
 Any effects we add here we can deal with after this block, or
-we can decompose this even further (see flashblast for details).
+we can decompose this even further (see flashblast for more details).
+
+You can also surround `Methodology`s with logging using the
+`traceMethodologyStart`, `traceMethodologyEnd` and `traceMethodologyAround`
+functions.
+
+```
+    & decomposeMethodology @Config.Deck @DeckSplit @Deck
+        & traceMethodologyAround @Config.Deck @(HList DeckSplit)
+            (const $ T.unpack $ "Analysing Deck: " <> n)
+            (const $ T.unpack $ "Finished Analysing Deck: " <> n)
+          & separateMethodologyInitial @Config.Deck @[Config.MinimalReversedCard]
+            & traceMethodologyAround @Config.Deck @[Config.MinimalReversedCard]
+             (const "Extracting Minimal Reversed Card Specs")
+             (\c -> "Found " <> show (length c) <> " Minimal Card specs.")
+```
 
 ## Notes
 
