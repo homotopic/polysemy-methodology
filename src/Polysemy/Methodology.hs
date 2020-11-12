@@ -99,6 +99,7 @@ runMethodologyPure
             -> Sem r a
 runMethodologyPure f = interpret \case
   Process b -> return $ f b
+{-# INLINE runMethodologyPure #-}
 
 -- | Run a `Methodology' using a monadic function with effects in `r`.
 --
@@ -110,6 +111,7 @@ runMethodologySem :: forall b c r a.
                   -> Sem r a
 runMethodologySem f = interpret \case
   Process b -> f b
+{-# INLINE runMethodologySem #-}
 
 -- | Cut a `Methodology` into two pieces at a midpoint.
 --
@@ -122,6 +124,7 @@ cutMethodology :: forall b c d r a.
                -> Sem r a
 cutMethodology = interpret \case
   Process b -> process @b @c b >>= process @c @d
+{-# INLINE cutMethodology #-}
 
 -- | Reinterpreting version of `cutMethodology`.
 --
@@ -132,6 +135,7 @@ cutMethodology' :: forall b c d r a.
                 -> Sem (Methodology b c ': Methodology c d ': r) a
 cutMethodology' = reinterpret2 \case
   Process b -> process @b @c b >>= raise . process @c @d
+{-# INLINE cutMethodology' #-}
 
 -- | Cut a `Methodology` into three pieces using two cuts.
 --
@@ -145,6 +149,7 @@ cutMethodology3 :: forall b c d e r a.
                -> Sem r a
 cutMethodology3 = interpret \case
   Process b -> process @b @c b >>= process @c @d >>= process @d @e
+{-# INLINE cutMethodology3 #-}
 
 -- | Reinterpreting version of `cutMethodology`.
 --
@@ -155,6 +160,7 @@ cutMethodology3' :: forall b c d e r a.
                  -> Sem (Methodology b c ': Methodology c d ': Methodology d e ': r) a
 cutMethodology3' = reinterpret3 \case
   Process b -> process @b @c b >>= raise . process @c @d
+{-# INLINE cutMethodology3' #-}
 
 -- | Divide a `Methodology` into two components using a `Methodology` that accepts a pair.`
 --
@@ -171,6 +177,7 @@ divideMethodology = interpret \case
     c  <- process @b @c  b
     c' <- process @b @c' b
     process @(c, c') @d (c, c')
+{-# INLINE divideMethodology #-}
 
 -- | Reinterpreting version of `divideMethodology`.
 --
@@ -183,6 +190,7 @@ divideMethodology' = reinterpret3 \case
     c  <- process @b @c b
     c' <- raise $ process @b @c' b
     raise $ raise $ process @(c, c') @d (c, c')
+{-# INLINE divideMethodology' #-}
 
 -- | Decide between two `Methodology`s using a `Methodology` that computes an `Either`.
 --
@@ -201,6 +209,7 @@ decideMethodology = interpret \case
     case k of
       Left c   -> process @c  @d c
       Right c' -> process @c' @d c'
+{-# INLINE decideMethodology #-}
 
 -- | Reinterpreting version of `decideMethodology`.
 --
@@ -214,6 +223,7 @@ decideMethodology' = reinterpret3 \case
     case k of
       Left c   -> raise $ process @c  @d c
       Right c' -> raise $ raise $ process @c' @d c'
+{-# INLINE decideMethodology' #-}
 
 -- | Tee the output of a `Methodology`, introducing a new `Output` effect to be handled.
 --
@@ -228,6 +238,7 @@ teeMethodologyOutput = intercept \case
     k <- process @b @c b
     output @c k
     return k
+{-# INLINE teeMethodologyOutput #-}
 
 -- | Make a `Methodology` depend on an additional input, introducing a new `Input` effect to be handled.
 --
@@ -240,6 +251,7 @@ plugMethodologyInput = interpret \case
   Process b -> do
     k <- input @b
     process @(b, c) @d (k, b)
+{-# INLINE plugMethodologyInput #-}
 
 -- | Run a `Methodology` as a `KVStore`, using the input as a key and the output as the value.
 --
@@ -250,6 +262,7 @@ runMethodologyAsKVStore :: forall k v r a.
                         -> Sem r a
 runMethodologyAsKVStore = interpret \case
   Process k -> lookupKV k
+{-# INLINE runMethodologyAsKVStore #-}
 
 -- | Run a `Methodology` as a `KVStore`, with a default value for lookup failure.
 --
@@ -266,6 +279,7 @@ runMethodologyAsKVStoreWithDefault d = interpret \case
     case z of
       Just a -> return a
       Nothing -> return d
+{-# INLINE runMethodologyAsKVStoreWithDefault #-}
 
 -- | Decompose a `Methodology` into several components to be recombined. This is `cutMethodology` specialised to `HList`.
 --
@@ -276,6 +290,7 @@ decomposeMethodology :: forall b f c r a.
                      => Sem (Methodology b c ': r) a
                      -> Sem r a
 decomposeMethodology = cutMethodology @b @(HList f) @c
+{-# INLINE decomposeMethodology #-}
 
 -- | Reinterpreting version of `decomposeMethodology`.
 --
@@ -284,6 +299,7 @@ decomposeMethodology' :: forall b f c r a.
                          Sem (Methodology b c ': r) a
                       -> Sem (Methodology b (HList f) ': Methodology (HList f) c ': r) a
 decomposeMethodology' = cutMethodology' @b @(HList f) @c
+{-# INLINE decomposeMethodology' #-}
 
 -- | Decompose a `Methodology` into several components over three sections with two cuts.
 --
@@ -295,6 +311,7 @@ decomposeMethodology3 :: forall b f g c r a.
                       => Sem (Methodology b c ': r) a
                       -> Sem r a
 decomposeMethodology3 = cutMethodology3 @b @(HList f) @(HList g) @c
+{-# INLINE decomposeMethodology3 #-}
 
 -- | Factor a `Methodology` decomposed over an `HList` in the result by a `Methodology` to the first variable.
 --
@@ -309,6 +326,7 @@ separateMethodologyInitial = interpret \case
     k   <- process @b @x b
     k'  <- process @b @(HList xs) b
     return $ k ::: k'
+{-# INLINE separateMethodologyInitial #-}
 
 -- | Finish an `HList` separated `Methodology` by consuming it for no effect.
 --
@@ -317,6 +335,7 @@ endMethodologyInitial :: Sem (Methodology b (HList '[]) ': r) a
                       -> Sem r a
 endMethodologyInitial = interpret \case
   Process _ -> return HNil
+{-# INLINE endMethodologyInitial #-}
 
 -- | Factor a `Methodology` decomposed over an `HList` in the source by a
 -- `Methodology` from the first variable. Assumes the result is a `Monoid`.
@@ -333,6 +352,7 @@ separateMethodologyTerminal = interpret \case
     k   <- process @x @c b
     k'  <- process @(HList xs) @c bs
     return $ k <> k'
+{-# INLINE separateMethodologyTerminal #-}
 
 -- | Finalise an `HList` separated `Methodology` in the source by returning the `Monoid` unit.
 --
@@ -342,6 +362,7 @@ endMethodologyTerminal :: Monoid c
                        -> Sem r a
 endMethodologyTerminal = interpret \case
   Process _ -> return mempty
+{-# INLINE endMethodologyTerminal #-}
 
 -- | Run a `Methodology` (f b) (f c) by way of a `Methodology` b c. Note that
 -- `f` must be `Traversable`.
@@ -354,6 +375,7 @@ fmapMethodology :: forall f b c r a.
                 -> Sem r a
 fmapMethodology = interpret \case
   Process b -> traverse (process @b @c) b
+{-# INLINE fmapMethodology #-}
 
 -- | Reinterpreting version of `fmapMethodology`
 --
@@ -363,6 +385,7 @@ fmapMethodology' :: forall f b c r a.
                  => Sem (Methodology (f b) (f c) ': r) a
                  -> Sem (Methodology b c ': r) a
 fmapMethodology' = raiseUnder >>> fmapMethodology
+{-# INLINE fmapMethodology' #-}
 
 -- | Run a `Methodology` (f (g b)) (f (g c))) by way of a `Methodology` b c. Note that
 -- `f` and `g` must be `Traversable`.
@@ -374,6 +397,7 @@ fmap2Methodology :: forall f g b c r a.
                  => Sem (Methodology (f (g b)) (f (g c)) ': r) a
                  -> Sem r a
 fmap2Methodology = fmapMethodology' @f @(g b) @(g c) >>> fmapMethodology @g @b @c
+{-# INLINE fmap2Methodology #-}
 
 -- | Reinterpreting version of `fmapMethodology`
 --
@@ -383,6 +407,7 @@ fmap2Methodology' :: forall f g b c r a.
                   => Sem (Methodology (f (g b)) (f (g c)) ': r) a
                   -> Sem (Methodology b c ': r) a
 fmap2Methodology' = raiseUnder >>> fmap2Methodology
+{-# INLINE fmap2Methodology' #-}
 
 -- | Run a `Methodology` (f b) (f c) by way of a `Methodology` b (f c). Note that
 -- `f` must be both `Traversable` and `Monad`.
@@ -395,6 +420,7 @@ bindMethodology :: forall f b c r a.
                 -> Sem r a
 bindMethodology = interpret \case
   Process b -> join <$> traverse (process @b @(f c)) b
+{-# INLINE bindMethodology #-}
 
 -- | Reinterpreting version of `bindMethodology`.
 --
@@ -404,6 +430,7 @@ bindMethodology' :: forall f b c r a.
                  => Sem (Methodology (f b) (f c) ': r) a
                  -> Sem (Methodology b (f c) ': r) a
 bindMethodology' = raiseUnder >>> bindMethodology
+{-# INLINE bindMethodology' #-}
 
 -- | Run a `Methodology` (t b) (f (t b)) by way of a `Methodology` b (f c). Note that
 -- `t` must be `Traversable` and `f` must be `Applicative`.
@@ -416,6 +443,7 @@ traverseMethodology :: forall t f b c r a.
                     -> Sem r a
 traverseMethodology = interpret \case
   Process b -> sequenceA <$> traverse (process @b @(f c)) b
+{-# INLINE traverseMethodology #-}
 
 -- | Reinterpreting version of `traverseMethodology`.
 --
@@ -425,6 +453,7 @@ traverseMethodology' :: forall t f b c r a.
                     => Sem (Methodology (t b) (f (t c)) ': r) a
                     -> Sem (Methodology b (f c) ': r) a
 traverseMethodology' = raiseUnder >>> traverseMethodology
+{-# INLINE traverseMethodology' #-}
 
 -- | Run a `Methodology` concatenating the results as a monoid.
 --
@@ -436,6 +465,7 @@ mconcatMethodology :: forall f b c r a.
                    -> Sem r a
 mconcatMethodology = interpret \case
   Process b -> traverse (process @b @c) b >>= return . foldr (<>) mempty
+{-# INLINE mconcatMethodology #-}
 
 -- | Reinterpreting version of `mconcatMethodology`.
 --
@@ -445,6 +475,7 @@ mconcatMethodology' :: forall f b c r a.
                    => Sem (Methodology (f b) c ': r) a
                    -> Sem (Methodology b c ': r) a
 mconcatMethodology' = raiseUnder >>> mconcatMethodology
+{-# INLINE mconcatMethodology' #-}
 
 -- | `Trace` a `String` based on the input to a `Methodology`.
 --
@@ -458,6 +489,7 @@ traceMethodologyStart :: forall b c r a.
                        -> Sem r a
 traceMethodologyStart f = intercept \case
   Process b -> trace (f b) >> process @b @c b
+{-# INLINE traceMethodologyStart #-}
 
 -- | `Trace` a `String` based on the output to a `Methodology`.
 --
@@ -474,6 +506,7 @@ traceMethodologyEnd f = intercept \case
     c <- process @b @c b
     trace $ f c
     return c
+{-# INLINE traceMethodologyEnd #-}
 
 -- | `Trace` both the start and the end of a `Methodology`.
 --
@@ -493,6 +526,7 @@ traceMethodologyAround f g = intercept \case
     c <- process @b @c b
     trace $ g c
     return c
+{-# INLINE traceMethodologyAround #-}
 
 -- | `Log` a type based on the input to a `Methodology`.
 --
@@ -506,6 +540,7 @@ logMethodologyStart :: forall b c p r a.
                        -> Sem r a
 logMethodologyStart f = intercept \case
   Process b -> C.log (f b) >> process @b @c b
+{-# INLINE logMethodologyStart #-}
 
 -- | `Log` a type based on the output to a `Methodology`.
 --
@@ -522,6 +557,7 @@ logMethodologyEnd f = intercept \case
     c <- process @b @c b
     C.log $ f c
     return c
+{-# INLINE logMethodologyEnd #-}
 
 -- | `Log` both the start and the end of a `Methodology`.
 --
@@ -542,3 +578,4 @@ logMethodologyAround f g = intercept \case
     c <- process @b @c b
     C.log $ g c
     return c
+{-# INLINE logMethodologyAround #-}

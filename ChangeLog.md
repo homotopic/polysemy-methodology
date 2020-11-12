@@ -6,6 +6,7 @@
   `decideMethodology`, `decomposeMethodology`
 * Add reinterpreting versions of `fmapMethodology`, `fmap2Methodology`. `traverseMethodology`,
   `bindMethodology`, `mconcatMethodology`.
+* Inline everything.
 
 ## v0.1.5.0
 
