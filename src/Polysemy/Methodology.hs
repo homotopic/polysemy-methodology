@@ -28,10 +28,15 @@ module Polysemy.Methodology (
 
 -- * Decomposition
 , cutMethodology
+, cutMethodology'
 , cutMethodology3
+, cutMethodology3'
 , divideMethodology
+, divideMethodology'
 , decideMethodology
+, decideMethodology'
 , decomposeMethodology
+, decomposeMethodology'
 , decomposeMethodology3
 , separateMethodologyInitial
 , endMethodologyInitial
@@ -40,10 +45,15 @@ module Polysemy.Methodology (
 
 -- * Simplifcation
 , fmapMethodology
+, fmapMethodology'
 , fmap2Methodology
+, fmap2Methodology'
 , bindMethodology
+, bindMethodology'
 , traverseMethodology
+, traverseMethodology'
 , mconcatMethodology
+, mconcatMethodology'
 
 -- * Other Effects
 , teeMethodologyOutput
@@ -62,6 +72,7 @@ module Polysemy.Methodology (
 , logMethodologyAround
 ) where
 
+import Control.Arrow
 import Control.Monad
 import Colog.Polysemy as C
 import Polysemy
@@ -112,6 +123,16 @@ cutMethodology :: forall b c d r a.
 cutMethodology = interpret \case
   Process b -> process @b @c b >>= process @c @d
 
+-- | Reinterpreting version of `cutMethodology`.
+--
+-- @since 0.1.6.0
+cutMethodology' :: forall b c d r a.
+                   Sem (Methodology b d ': r) a
+                  -- ^ Methodology effect to decompose.
+                -> Sem (Methodology b c ': Methodology c d ': r) a
+cutMethodology' = reinterpret2 \case
+  Process b -> process @b @c b >>= raise . process @c @d
+
 -- | Cut a `Methodology` into three pieces using two cuts.
 --
 -- @since 0.1.0.0
@@ -124,6 +145,16 @@ cutMethodology3 :: forall b c d e r a.
                -> Sem r a
 cutMethodology3 = interpret \case
   Process b -> process @b @c b >>= process @c @d >>= process @d @e
+
+-- | Reinterpreting version of `cutMethodology`.
+--
+-- @since 0.1.6.0
+cutMethodology3' :: forall b c d e r a.
+                    Sem (Methodology b d ': r) a
+                   -- ^ Methodology effect to decompose.
+                 -> Sem (Methodology b c ': Methodology c d ': Methodology d e ': r) a
+cutMethodology3' = reinterpret3 \case
+  Process b -> process @b @c b >>= raise . process @c @d
 
 -- | Divide a `Methodology` into two components using a `Methodology` that accepts a pair.`
 --
@@ -140,6 +171,18 @@ divideMethodology = interpret \case
     c  <- process @b @c  b
     c' <- process @b @c' b
     process @(c, c') @d (c, c')
+
+-- | Reinterpreting version of `divideMethodology`.
+--
+-- @since 0.1.6.0
+divideMethodology' :: forall b c c' d r a.
+                      Sem (Methodology b d ': r) a
+                   -> Sem (Methodology b c ': Methodology b c' ': Methodology (c, c') d ':   r) a
+divideMethodology' = reinterpret3 \case
+  Process b -> do
+    c  <- process @b @c b
+    c' <- raise $ process @b @c' b
+    raise $ raise $ process @(c, c') @d (c, c')
 
 -- | Decide between two `Methodology`s using a `Methodology` that computes an `Either`.
 --
@@ -158,6 +201,19 @@ decideMethodology = interpret \case
     case k of
       Left c   -> process @c  @d c
       Right c' -> process @c' @d c'
+
+-- | Reinterpreting version of `decideMethodology`.
+--
+-- @since 0.1.6.0
+decideMethodology' :: forall b c c' d r a.
+                      Sem (Methodology b d ': r) a
+                   -> Sem (Methodology b (Either c c') ': Methodology c d ': Methodology c' d ':   r) a
+decideMethodology' = reinterpret3 \case
+  Process b -> do
+    k <- process @b @(Either c c') b
+    case k of
+      Left c   -> raise $ process @c  @d c
+      Right c' -> raise $ raise $ process @c' @d c'
 
 -- | Tee the output of a `Methodology`, introducing a new `Output` effect to be handled.
 --
@@ -220,6 +276,14 @@ decomposeMethodology :: forall b f c r a.
                      => Sem (Methodology b c ': r) a
                      -> Sem r a
 decomposeMethodology = cutMethodology @b @(HList f) @c
+
+-- | Reinterpreting version of `decomposeMethodology`.
+--
+-- @since 0.1.6.0
+decomposeMethodology' :: forall b f c r a.
+                         Sem (Methodology b c ': r) a
+                      -> Sem (Methodology b (HList f) ': Methodology (HList f) c ': r) a
+decomposeMethodology' = cutMethodology' @b @(HList f) @c
 
 -- | Decompose a `Methodology` into several components over three sections with two cuts.
 --
@@ -291,6 +355,15 @@ fmapMethodology :: forall f b c r a.
 fmapMethodology = interpret \case
   Process b -> traverse (process @b @c) b
 
+-- | Reinterpreting version of `fmapMethodology`
+--
+-- @since 0.1.6.0
+fmapMethodology' :: forall f b c r a.
+                    Traversable f
+                 => Sem (Methodology (f b) (f c) ': r) a
+                 -> Sem (Methodology b c ': r) a
+fmapMethodology' = raiseUnder >>> fmapMethodology
+
 -- | Run a `Methodology` (f (g b)) (f (g c))) by way of a `Methodology` b c. Note that
 -- `f` and `g` must be `Traversable`.
 --
@@ -298,9 +371,18 @@ fmapMethodology = interpret \case
 fmap2Methodology :: forall f g b c r a.
                   ( Members '[Methodology b c] r
                   , Traversable f, Traversable g)
-                 => Sem (Methodology (f (g b)) (f (g c)) ': Methodology (g b) (g c) ': r) a
+                 => Sem (Methodology (f (g b)) (f (g c)) ': r) a
                  -> Sem r a
-fmap2Methodology = fmapMethodology @g @b @c . fmapMethodology @f @(g b) @(g c)
+fmap2Methodology = fmapMethodology' @f @(g b) @(g c) >>> fmapMethodology @g @b @c
+
+-- | Reinterpreting version of `fmapMethodology`
+--
+-- @since 0.1.6.0
+fmap2Methodology' :: forall f g b c r a.
+                     (Traversable f, Traversable g)
+                  => Sem (Methodology (f (g b)) (f (g c)) ': r) a
+                  -> Sem (Methodology b c ': r) a
+fmap2Methodology' = raiseUnder >>> fmap2Methodology
 
 -- | Run a `Methodology` (f b) (f c) by way of a `Methodology` b (f c). Note that
 -- `f` must be both `Traversable` and `Monad`.
@@ -314,6 +396,15 @@ bindMethodology :: forall f b c r a.
 bindMethodology = interpret \case
   Process b -> join <$> traverse (process @b @(f c)) b
 
+-- | Reinterpreting version of `bindMethodology`.
+--
+-- @since 0.1.6.0
+bindMethodology' :: forall f b c r a.
+                  ( Traversable f, Monad f)
+                 => Sem (Methodology (f b) (f c) ': r) a
+                 -> Sem (Methodology b (f c) ': r) a
+bindMethodology' = raiseUnder >>> bindMethodology
+
 -- | Run a `Methodology` (t b) (f (t b)) by way of a `Methodology` b (f c). Note that
 -- `t` must be `Traversable` and `f` must be `Applicative`.
 --
@@ -326,6 +417,15 @@ traverseMethodology :: forall t f b c r a.
 traverseMethodology = interpret \case
   Process b -> sequenceA <$> traverse (process @b @(f c)) b
 
+-- | Reinterpreting version of `traverseMethodology`.
+--
+-- @since 0.1.6.0
+traverseMethodology' :: forall t f b c r a.
+                      ( Traversable t, Applicative f)
+                    => Sem (Methodology (t b) (f (t c)) ': r) a
+                    -> Sem (Methodology b (f c) ': r) a
+traverseMethodology' = raiseUnder >>> traverseMethodology
+
 -- | Run a `Methodology` concatenating the results as a monoid.
 --
 -- @since 0.1.5.0
@@ -336,6 +436,15 @@ mconcatMethodology :: forall f b c r a.
                    -> Sem r a
 mconcatMethodology = interpret \case
   Process b -> traverse (process @b @c) b >>= return . foldr (<>) mempty
+
+-- | Reinterpreting version of `mconcatMethodology`.
+--
+-- @since 0.1.6.0
+mconcatMethodology' :: forall f b c r a.
+                      ( Monoid c, Traversable f)
+                   => Sem (Methodology (f b) c ': r) a
+                   -> Sem (Methodology b c ': r) a
+mconcatMethodology' = raiseUnder >>> mconcatMethodology
 
 -- | `Trace` a `String` based on the input to a `Methodology`.
 --

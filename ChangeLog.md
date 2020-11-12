@@ -1,5 +1,12 @@
 # Changelog for polysemy-methodology
 
+## v0.1.6.0
+
+* Add reinterpreting versions of `cutMethodology`, `cutMethodology3`, `divideMethodology`,
+  `decideMethodology`, `decomposeMethodology`
+* Add reinterpreting versions of `fmapMethodology`, `fmap2Methodology`. `traverseMethodology`,
+  `bindMethodology`, `mconcatMethodology`.
+
 ## v0.1.5.0
 
 * Add `mconcatMethodology`.
