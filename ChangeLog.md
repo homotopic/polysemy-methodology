@@ -1,5 +1,9 @@
 # Changelog for polysemy-methodology
 
+## v0.1.7.0
+
+* Add `pureMethodology` and `pureMethodology'`.
+
 ## v0.1.6.0
 
 * Add reinterpreting versions of `cutMethodology`, `cutMethodology3`, `divideMethodology`,

@@ -48,6 +48,8 @@ module Polysemy.Methodology (
 , fmapMethodology'
 , fmap2Methodology
 , fmap2Methodology'
+, pureMethodology
+, pureMethodology'
 , bindMethodology
 , bindMethodology'
 , traverseMethodology
@@ -377,7 +379,7 @@ fmapMethodology = interpret \case
   Process b -> traverse (process @b @c) b
 {-# INLINE fmapMethodology #-}
 
--- | Reinterpreting version of `fmapMethodology`
+-- | Reinterpreting version of `fmapMethodology`.
 --
 -- @since 0.1.6.0
 fmapMethodology' :: forall f b c r a.
@@ -399,7 +401,7 @@ fmap2Methodology :: forall f g b c r a.
 fmap2Methodology = fmapMethodology' @f @(g b) @(g c) >>> fmapMethodology @g @b @c
 {-# INLINE fmap2Methodology #-}
 
--- | Reinterpreting version of `fmapMethodology`
+-- | Reinterpreting version of `fmapMethodology`.
 --
 -- @since 0.1.6.0
 fmap2Methodology' :: forall f g b c r a.
@@ -408,6 +410,26 @@ fmap2Methodology' :: forall f g b c r a.
                   -> Sem (Methodology b c ': r) a
 fmap2Methodology' = raiseUnder >>> fmap2Methodology
 {-# INLINE fmap2Methodology' #-}
+
+-- | Run a `Methodology` b (f c) in terms of a `Methodology` b c.
+--
+-- @since 0.1.7.0
+pureMethodology :: forall f b c r a.
+                   (Members '[Methodology b c] r, Applicative f)
+                => Sem (Methodology b (f c) ': r) a
+                -> Sem r a
+pureMethodology = interpret \case
+  Process b -> pure <$> process @b @c b
+{-# INLINE pureMethodology #-}
+
+-- | Reinterpreting version of `pureMethodology`.
+--
+-- @since 0.1.7.0
+pureMethodology' :: forall f b c r a. Applicative f
+                 => Sem (Methodology b (f c) ': r) a
+                 -> Sem (Methodology b c ': r) a
+pureMethodology' = raiseUnder >>> pureMethodology
+{-# INLINE pureMethodology' #-}
 
 -- | Run a `Methodology` (f b) (f c) by way of a `Methodology` b (f c). Note that
 -- `f` must be both `Traversable` and `Monad`.
