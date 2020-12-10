@@ -1,5 +1,9 @@
 # Changelog for polysemy-methodology
 
+## v0.1.8.0
+
+* Add `runMethodologyMappendPure` and `runMethodologyMappendSem`.
+
 ## v0.1.7.0
 
 * Add `pureMethodology` and `pureMethodology'`.

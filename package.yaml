@@ -1,5 +1,5 @@
 name:                polysemy-methodology
-version:             0.1.7.0
+version:             0.1.8.0
 license:             MIT
 git:                 https://gitlab.com/homotopic-tech/polysemy-methodology
 author:              "Daniel Firth"
@@ -16,9 +16,9 @@ category:            Polysemy
 dependencies:
 - base >= 4.7 && < 5
 - co-log-polysemy
-- polysemy
+- polysemy >= 1.3.0.0 && < 1.5
 - polysemy-plugin
-- polysemy-zoo
+- polysemy-zoo >= 0.7.0.1 && < 0.8
 
 ghc-options:
 - -Wall

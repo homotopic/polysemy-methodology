@@ -62,6 +62,8 @@ module Polysemy.Methodology (
 , plugMethodologyInput
 , runMethodologyAsKVStore
 , runMethodologyAsKVStoreWithDefault
+, runMethodologyMappendPure
+, runMethodologyMappendSem
 
 -- * Tracing
 , traceMethodologyStart
@@ -74,6 +76,7 @@ module Polysemy.Methodology (
 , logMethodologyAround
 ) where
 
+import Control.Applicative
 import Control.Arrow
 import Control.Monad
 import Colog.Polysemy as C
@@ -282,6 +285,32 @@ runMethodologyAsKVStoreWithDefault d = interpret \case
       Just a -> return a
       Nothing -> return d
 {-# INLINE runMethodologyAsKVStoreWithDefault #-}
+
+-- | Run a `Methodology` targetting a `Monoid` without consuming it, pure version. This should probably be considered an
+-- anti-pattern, and it's probably better to decompose the inputs fully, but is otherwise sound.
+--
+-- @since 0.1.8.0
+runMethodologyMappendPure :: forall b c r a.
+                             (Monoid c,
+                             Members '[Methodology b c] r)
+                          => (b -> c)
+                          -> Sem r a -> Sem r a
+runMethodologyMappendPure f = intercept \case
+  Process b -> (f b <>) <$> process @b @c b
+{-# INLINE runMethodologyMappendPure #-}
+
+-- | Run a `Methodology` targetting a `Monoid` without consuming it, `Sem` version. This should probably be considered an
+-- anti-pattern, and it's probably better to decompose the inputs fully, but is otherwise sound.
+--
+-- @since 0.1.8.0
+runMethodologyMappendSem :: forall b c r a.
+                            (Monoid c,
+                            Members '[Methodology b c] r)
+                          => (b -> Sem r c)
+                          -> Sem r a -> Sem r a
+runMethodologyMappendSem f = intercept \case
+  Process b -> liftA2 (<>) (f b) (process @b @c b)
+{-# INLINE runMethodologyMappendSem #-}
 
 -- | Decompose a `Methodology` into several components to be recombined. This is `cutMethodology` specialised to `HList`.
 --
