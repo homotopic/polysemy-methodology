@@ -1,5 +1,10 @@
 # Changelog for polysemy-methodology
 
+## v0.2.0.0
+
+* Drop dependency on polysemy-zoo and replace with polysemy-several.
+* Drop logging functions and move to polysemy-methodology-co-log
+
 ## v0.1.8.0
 
 * Add `runMethodologyMappendPure` and `runMethodologyMappendSem`.

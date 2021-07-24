@@ -5,36 +5,15 @@
 
 packages:
 - completed:
-    hackage: compact-0.2.0.0@sha256:9c5785bdc178ea6cf8f514ad35a78c64220e3cdb22216534e4cf496765551c7e,2345
+    hackage: polysemy-several-0.1.0.0@sha256:7a4c612116d9ccc2b707d8b95e633c8937e6b018b990c1284fd1949887bfdc50,1029
     pantry-tree:
-      size: 546
-      sha256: 6f7da573fbcddc109e1521edc07f1b34d7506473a3930074453e829daf901d71
+      size: 277
+      sha256: 78913107148e709aeb2efc0d86c725087ddd91241bc5764b298829e917793c2e
   original:
-    hackage: compact-0.2.0.0
-- completed:
-    hackage: polysemy-plugin-0.2.5.1@sha256:61c6c0aad2852377aa5d5a8f9639a437905e3a6f0e2a99a41e96fb231dc86836,2952
-    pantry-tree:
-      size: 1232
-      sha256: 9720d9a1675c7ac3e2635b8c9f002f7ab0764eb60738a3405603cb33bdffc493
-  original:
-    hackage: polysemy-plugin-0.2.5.1
-- completed:
-    hackage: polysemy-zoo-0.7.0.1@sha256:60c2921df95f61d43222a75adde4f330e9510320b416132838a354cd81b4bcc5,3846
-    pantry-tree:
-      size: 2979
-      sha256: af39e295a7831e6bca01fa78df6c538cb6f1dfb339d118056fd0d9c314925726
-  original:
-    hackage: polysemy-zoo-0.7.0.1
-- completed:
-    hackage: ghc-tcplugins-extra-0.3.2@sha256:1bbfd4449c3669a31618ea0ebc5d00d980a53988daad3b6218bab5c8cdff268d,1687
-    pantry-tree:
-      size: 331
-      sha256: 4b16989344380c912e476dc232cc58264837b498e31a8bf16a17092ba6c1cfb9
-  original:
-    hackage: ghc-tcplugins-extra-0.3.2
+    hackage: polysemy-several-0.1.0.0
 snapshots:
 - completed:
-    size: 543560
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2020/10/28.yaml
-    sha256: e6926f04392e58a8ac3745cfa05b48392f38934a0dbec4dcf408e201f9584560
-  original: nightly-2020-10-28
+    size: 567260
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/7/23.yaml
+    sha256: 94c5e73c2221ce53348504de8916c960a78a97bdc6ff0921200a42773694bd7c
+  original: nightly-2021-07-23

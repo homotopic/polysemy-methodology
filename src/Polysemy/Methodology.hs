@@ -69,15 +69,9 @@ module Polysemy.Methodology
     traceMethodologyStart,
     traceMethodologyEnd,
     traceMethodologyAround,
-
-    -- * Logging
-    logMethodologyStart,
-    logMethodologyEnd,
-    logMethodologyAround,
   )
 where
 
-import Colog.Polysemy as C
 import Control.Applicative
 import Control.Arrow
 import Control.Monad
@@ -666,67 +660,3 @@ traceMethodologyAround f g = intercept \case
     trace $ g c
     return c
 {-# INLINE traceMethodologyAround #-}
-
--- | `Log` a type based on the input to a `Methodology`.
---
--- @since 0.1.4.0
-logMethodologyStart ::
-  forall b c p r a.
-  Members
-    '[ Methodology b c,
-       Log p
-     ]
-    r =>
-  -- | A function from the input type b to an event type p.
-  (b -> p) ->
-  Sem r a ->
-  Sem r a
-logMethodologyStart f = intercept \case
-  Process b -> C.log (f b) >> process @b @c b
-{-# INLINE logMethodologyStart #-}
-
--- | `Log` a type based on the output to a `Methodology`.
---
--- @since 0.1.4.0
-logMethodologyEnd ::
-  forall b c q r a.
-  Members
-    '[ Methodology b c,
-       Log q
-     ]
-    r =>
-  -- | A function from the input type c to an event type q.
-  (c -> q) ->
-  Sem r a ->
-  Sem r a
-logMethodologyEnd f = intercept \case
-  Process b -> do
-    c <- process @b @c b
-    C.log $ f c
-    return c
-{-# INLINE logMethodologyEnd #-}
-
--- | `Log` both the start and the end of a `Methodology`.
---
--- @since 0.1.4.0
-logMethodologyAround ::
-  forall b c p q r a.
-  Members
-    '[ Methodology b c,
-       Log p,
-       Log q
-     ]
-    r =>
-  -- | A function from the input type b to an event type p.
-  (b -> p) ->
-  -- | A function from the output type b to an event type q,
-  (c -> q) ->
-  Sem r a ->
-  Sem r a
-logMethodologyAround f g = intercept \case
-  Process b -> do
-    C.log $ f b
-    c <- process @b @c b
-    C.log $ g c
-    return c
-{-# INLINE logMethodologyAround #-}
