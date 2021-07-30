@@ -1,5 +1,9 @@
 # Changelog for polysemy-methodology
 
+## v0.2.1.0
+
+* Drop dependency on polysemy-plugin.
+
 ## v0.2.0.0
 
 * Drop dependency on polysemy-zoo and replace with polysemy-several.

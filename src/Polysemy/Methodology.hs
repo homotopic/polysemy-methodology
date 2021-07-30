@@ -9,7 +9,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
-{-# OPTIONS_GHC -fplugin=Polysemy.Plugin #-}
 
 -- |
 --   Module     : Polysemy.Methodology
@@ -257,7 +256,7 @@ teeMethodologyOutput ::
     r =>
   Sem r a ->
   Sem r a
-teeMethodologyOutput = intercept \case
+teeMethodologyOutput = intercept @(Methodology b c) \case
   Process b -> do
     k <- process @b @c b
     output @c k
@@ -320,7 +319,7 @@ runMethodologyMappendPure ::
   (b -> c) ->
   Sem r a ->
   Sem r a
-runMethodologyMappendPure f = intercept \case
+runMethodologyMappendPure f = intercept @(Methodology b c) \case
   Process b -> (f b <>) <$> process @b @c b
 {-# INLINE runMethodologyMappendPure #-}
 
@@ -336,7 +335,7 @@ runMethodologyMappendSem ::
   (b -> Sem r c) ->
   Sem r a ->
   Sem r a
-runMethodologyMappendSem f = intercept \case
+runMethodologyMappendSem f = intercept @(Methodology b c) \case
   Process b -> liftA2 (<>) (f b) (process @b @c b)
 {-# INLINE runMethodologyMappendSem #-}
 
@@ -612,7 +611,7 @@ traceMethodologyStart ::
   (b -> String) ->
   Sem r a ->
   Sem r a
-traceMethodologyStart f = intercept \case
+traceMethodologyStart f = intercept @(Methodology b c) \case
   Process b -> trace (f b) >> process @b @c b
 {-# INLINE traceMethodologyStart #-}
 
@@ -630,7 +629,7 @@ traceMethodologyEnd ::
   (c -> String) ->
   Sem r a ->
   Sem r a
-traceMethodologyEnd f = intercept \case
+traceMethodologyEnd f = intercept @(Methodology b c) \case
   Process b -> do
     c <- process @b @c b
     trace $ f c
@@ -653,7 +652,7 @@ traceMethodologyAround ::
   (c -> String) ->
   Sem r a ->
   Sem r a
-traceMethodologyAround f g = intercept \case
+traceMethodologyAround f g = intercept @(Methodology b c) \case
   Process b -> do
     trace $ f b
     c <- process @b @c b
