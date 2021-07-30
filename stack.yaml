@@ -1,5 +1,3 @@
-resolver: nightly-2021-07-23
+resolver: nightly-2021-07-30
 packages:
 - .
-extra-deps:
-- polysemy-several-0.1.0.0
